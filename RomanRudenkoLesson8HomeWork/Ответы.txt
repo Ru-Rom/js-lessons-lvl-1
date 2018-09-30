@@ -1,0 +1,81 @@
+if (!("a" in window)) {
+    var a = 1;
+}
+alert(a);
+
+Первичный ответ: undefined т.к. a определяется внутри if а спрашивается до своего определения, во внешней(более внешней) области видимости
+Подумал еще и понял что это не так, if использует ту же область видимости т.к. это не функция и функциональная область видимости с этим не связана.
+Скорее всего дело в том что переменная "a" была поднята выше hoisting-ом, но поднята как объявленная но не определенная переменная "a", таким образом т.к. "a" будет определена после выполнения if но при этом a уже
+существует в глобальном объекте window и условия проверки не отсутствие объявленной переменной a не проходит, то a так и остается undefined
+
+var b = function a(x) {
+    x && a(--x);
+};
+alert(a);
+
+Предполагал что undefined, в принципе прав a is not defined
+
+function a(x) {
+    return x * 2;
+}
+var a;
+alert(a);
+
+Подумал что тоже про x(a) undefined но получается что отдается сама функция
+
+function b(x, y, a) {
+    arguments[2] = 10;
+    alert(a);
+}
+b(1, 2, 3);
+
+В функции 3й аргумент меняется на 10 а затем он же и выводится в алерте, получаем 10
+
+function a() {
+    alert(this);
+}
+a.call(null);
+
+Window т.к. this в контексте этого объекта находится
+
+По игре и замыканиям:
+Для себя определил удобство вложенных функций для повышения читабльности кода и дополнительного разделения, пример на функции render в змейке:
+    render: function() {
+        var elements = document.getElementsByTagName('td');
+        renderCleaner.call(this);
+        snakeRender.call(this);
+        foodRender.call(this);
+        wallRender.call(this);
+        // Очищаем старые объекты перед построением нового состояния карты
+        function renderCleaner() {
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].classList.remove('snake-unit'); // Удаляем class snake-unit / food-unit
+                elements[i].classList.remove('food-unit');
+            }
+        }
+        // Ставим классы для отображения змеи
+        function snakeRender() {
+            for (var i = 0; i < this.snake.length; i++) {
+                var cell = this.snake[i];
+                var id = 'cell-' + cell.row + '-' + cell.col;
+                document.getElementById(id).classList.add('snake-unit');
+            }
+        }
+        // Рисуем еду в заданной ячейке ставя ей нужный класс для отображения
+        function foodRender() {
+            if (this.food.row && this.food.col) {
+                var id = 'cell-' + this.food.row + '-' + this.food.col;
+                document.getElementById(id).classList.add('food-unit');
+            }
+        }
+        // Рисуем стену
+        function wallRender() {
+            if (this.wallCell.row && this.wallCell.col) {
+                var id = 'cell-' + this.wallCell.row + '-' + this.wallCell.col;
+                document.getElementById(id).classList.add('wall-unit');
+            }
+        }
+    },
+	
+Вынес ключевые фрагменты которые просились отделиться от общей массы кода выполняющие определенные действия в отдельные функции.
+В принципе называя функции понятными именами, даже уходит необходимость оставлять подписи в виде комментариев т.к. по названию функции понятно что она делает.
